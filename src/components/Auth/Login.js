@@ -2,6 +2,7 @@ import React from "react";
 
 import useFormValidation from "./useFormValidation";
 import validateLogin from "./validateLogin";
+import firebase from "../../firebase";
 
 const INITIAL_STATE = {
   name: "",
@@ -17,9 +18,24 @@ function Login(props) {
     values,
     errors,
     isSubmitting
-  } = useFormValidation(INITIAL_STATE, validateLogin);
+  } = useFormValidation(INITIAL_STATE, validateLogin, authenticateUser);
 
   const [login, setLogin] = React.useState(true);
+  const [firebaseError, setFirebaseError] = React.useState(null);
+
+  async function authenticateUser() {
+    const { name, email, password } = values;
+
+    try {
+      login
+        ? await firebase.login(email, password)
+        : await firebase.register(name, email, password);
+    } catch (err) {
+      console.error("Authentication Error", err);
+      setFirebaseError(err.message);
+    }
+  }
+
   return (
     <div>
       <h2 className="mv3">{login ? "Login" : "Create Account"}</h2>
@@ -37,7 +53,7 @@ function Login(props) {
         <input
           onChange={handleChange}
           onBlur={handleBlur}
-          classNames={errors.email && "error-input"}
+          className={errors.email && "error-input"}
           values={values.email}
           name="email"
           type="email"
@@ -48,20 +64,21 @@ function Login(props) {
         <input
           onChange={handleChange}
           onBlur={handleBlur}
-          classNames={errors.password && "error-input"}
+          className={errors.password && "error-input"}
           values={values.password}
           name="password"
           type="password"
           placeholder="Choose a secure password"
         />
         {errors.password && <p className="error-text">{errors.password}</p>}
+        {firebaseError && <p className="error-text">{firebaseError}</p>}
 
         <div className="flex mt3">
           <button
             type="submit"
             className="button pointer mr2"
             disabled={isSubmitting}
-            style={{ background: isSubmitting ? "grey" : "orange" }}
+            style={{ background: isSubmitting ? "gray" : "orange" }}
           >
             Submit
           </button>
