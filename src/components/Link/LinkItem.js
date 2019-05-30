@@ -1,13 +1,28 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import { getDomain } from "../../utils";
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { FirebaseContext } from "../../firebase";
 
-function LinkItem({ link, index, showCount }) {
+function LinkItem({ link, index, showCount, history }) {
   const { firebase, user } = React.useContext(FirebaseContext);
 
-  function handleVote() {}
+  function handleVote() {
+    if (!user) {
+      history.push("/login");
+    } else {
+      const voteRef = firebase.db.collection("links").doc(link.id);
+      voteRef.get().then(doc => {
+        if (doc.exists) {
+          const previousVotes = doc.data().votes;
+          const vote = { votedBy: { id: user.uid, name: user.displayName } };
+          const updatedVotes = [...previousVotes, vote];
+
+          voteRef.update({ votes: updatedVotes });
+        }
+      });
+    }
+  }
   return (
     <div className="flex items-start mt2">
       <div className="flex items-center">
@@ -39,4 +54,4 @@ function LinkItem({ link, index, showCount }) {
   );
 }
 
-export default LinkItem;
+export default withRouter(LinkItem);
