@@ -17,8 +17,9 @@ function LinkItem({ link, index, showCount, history }) {
           const previousVotes = doc.data().votes;
           const vote = { votedBy: { id: user.uid, name: user.displayName } };
           const updatedVotes = [...previousVotes, vote];
+          const voteCount = updatedVotes.length;
 
-          voteRef.update({ votes: updatedVotes });
+          voteRef.update({ votes: updatedVotes, voteCount });
         }
       });
     }
@@ -42,7 +43,7 @@ function LinkItem({ link, index, showCount, history }) {
   return (
     <div className="flex items-start mt2">
       <div className="flex items-center">
-        {showCount && <span className="gray">{index + 1}</span>}
+        {showCount && <span className="gray">{index}</span>}
 
         <div className="vote-button" onClick={handleVote}>
           ▲
@@ -58,7 +59,7 @@ function LinkItem({ link, index, showCount, history }) {
         </div>
 
         <div className="f6 lh-copy gray">
-          {link.votes.length} votes by {link.postedBy.name}{" "}
+          {link.voteCount} votes by {link.postedBy.name}{" "}
           {distanceInWordsToNow(link.created)}
           {" | "}
           <Link to={`/link/${link.id}`}>
